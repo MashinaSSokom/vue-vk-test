@@ -17,15 +17,16 @@ export default {
     const hash = window.location.hash
     if (hash.toString().includes('access_token')) {
       const token = hash.split('&')[0].slice(14)
+      const userId = hash.split('&')[2].slice(8)
       this.setAccessToken({token})
-      console.log(this.isLoggedIn)
+      this.setLoggedUserId({userId})
     }
   },
   computed: {
     ...mapGetters(['isLoggedIn'])
   },
   methods: {
-    ...mapMutations(["setAccessToken"]),
+    ...mapMutations(['setAccessToken','setLoggedUserId']),
     ...mapActions(['loginVK']),
     loginHandler() {
       const appId = 51450674

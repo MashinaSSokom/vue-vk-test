@@ -23,6 +23,7 @@ export default createStore({
         profile: null,
         accessToken: '',
         // isLoggedIn: false,
+        loggedUserId: null
 
     },
     getters: {
@@ -34,6 +35,9 @@ export default createStore({
         },
         getProfile: (state) => {
             return state.profile
+        },
+        getLoggedUserId: (state) => {
+            return state.loggedUserId
         }
 
     },
@@ -44,13 +48,19 @@ export default createStore({
         setUsers: (state, {users}) => {
             state.users = users
         },
-        profile: (state, {userInfo}) => {
+        setProfile: (state, {userInfo}) => {
             state.profile = userInfo
+        },
+        setLoggedUserId: (state, {userId}) => {
+            state.loggedUserId = userId
         }
     },
     actions: {
         loginVK: async (ctx, {appId}) => {
             window.location.href = `https://oauth.vk.com/authorize?client_id=${appId}&display=popup&redirect_uri=http://localhost:8080&scope=friends&users&response_type=token&v=v=5.131`
+        },
+        getUserFriends: async (ctx, {userId}) => {
+            console.log(userId)
         }
     },
     modules: {}
