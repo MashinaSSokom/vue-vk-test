@@ -1,8 +1,6 @@
 <template>
   <div class="navbar">
-    <router-link to="/">Home</router-link>
-    |
-    <router-link to="/about">About</router-link>
+    <router-link to="/">Главная</router-link>
     |
     <a href="#" @click="loginHandler">Войти через ВК</a>
   </div>
