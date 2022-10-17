@@ -1,5 +1,8 @@
 import {createStore} from 'vuex'
 import {jsonp} from "vue-jsonp";
+import createPersistedState from "vuex-persistedstate";
+
+
 
 export default createStore({
     state: {
@@ -87,15 +90,18 @@ export default createStore({
             ctx.commit('setFetchedUsers', {fetchedUsers: payload})
         },
         fetchUserWall: async (ctx, {userId}) => {
+            console.log(123)
             const res = await jsonp(`https://api.vk.com/method/wall.get`, {
                 owner_id: userId,
                 access_token: ctx.state.accessToken,
                 count: '10',
                 v: 5.131
             })
+            console.log(res)
             const payload = res.response.items
             ctx.commit('setFetchedWall', {fetchedWall: payload})
         }
     },
-    modules: {}
+    modules: {},
+    plugins: [createPersistedState()],
 })
