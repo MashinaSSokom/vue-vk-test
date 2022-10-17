@@ -7,18 +7,18 @@
         <template v-if="this.getFetchedUsers">
           <div class="search__container">
             <input v-model="searchString" @input="() => findUsers(searchString)"/>
-            <ul class="search-list">
+            <div class="search-list">
               <template v-for="user in this.getFetchedUsers" :key="user.id">
-                <li class="search-list__user" @click="() => userClickHandler(user.id)">
+                <div class="search-list__user" @click="() => userClickHandler(user.id)">
                   <img :src="user.photo" alt="">
                   <p>id: {{ user.id }}</p>
                   <router-link :to="`/profile/${user.id}`"><p>{{ `${user.first_name} ${user.last_name}` }}</p>
                   </router-link>
                   <p>Общих друзей: {{ user.common_count }}</p>
-                </li>
+                </div>
                 <!--TODO: Подгрузка следующих 20-->
               </template>
-            </ul>
+            </div>
           </div>
 
         </template>
@@ -30,17 +30,20 @@
             </template>
           </ul>
         </div>
+        <div class="fetched-users">
+          <p>Найденные друзья выбранных пользователей:</p>
+          <div class="fetched-users__container">
+            <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
+              <div class="user-card">
+                <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+                <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+                <p>Общих выбранных друзей: {{ user.countCheckedUserMatch }}</p>
+              </div>
+            </template>
+          </div>
+        </div>
       </div>
-      <div class="fetched-users">
-        <p>Найденные друзья выбранных пользователей:</p>
-          <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-            <div class="user-card">
-              <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
-              <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-              <p>Общих выбранных друзей: {{user.countCheckedUserMatch}}</p>
-            </div>
-          </template>
-      </div>
+
     </template>
     <template v-else>
       <p>Для начала войдите через ВК</p>
@@ -108,24 +111,27 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: left;
+    margin-right: 20px;
   }
 
   .search__checked-users {
-    width: 200px;
+    min-width: 200px;
     height: 250px;
     border: 1px solid grey;
+    overflow-y: scroll;
   }
 
   .search-list {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
     flex-direction: column;
-    width: 75%;
-    margin-right: 20px;;
+    //width: 75%;
+    height: 500px;
+    overflow-y: scroll;
 
     .search-list__user {
       display: flex;
+      flex: 1;
       width: 500px;
       border: 1px solid grey;
     }
@@ -136,22 +142,30 @@ export default {
 
   }
 
-  .fetched-users{
-    display: flex;
-    flex-wrap: wrap;
-    .user-card{
-      width: 200px;
-      height: 350px;
-      border: 1px solid grey;
-      border-radius: 15px;
-      display: flex;
-      flex-direction: column;
-      padding: 5px;
-      margin: 2px;
+  .fetched-users {
 
-      .user-card__avatar{
-        width: 200px;
-        height: 200px;
+    //width: 750px;
+
+
+    .fetched-users__container {
+      display: flex;
+      flex-wrap: wrap;
+
+      .user-card {
+        width: 210px;
+        height: 350px;
+        border: 1px solid grey;
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+        margin: 2px;
+
+        .user-card__avatar {
+          border-radius: 15px;
+          width: 200px;
+          height: 200px;
+        }
       }
     }
   }
