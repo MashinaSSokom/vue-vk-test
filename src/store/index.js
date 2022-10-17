@@ -2,8 +2,6 @@ import {createStore} from 'vuex'
 import {jsonp} from "vue-jsonp";
 import createPersistedState from "vuex-persistedstate";
 
-
-
 export default createStore({
     state: {
         users: [
@@ -27,7 +25,8 @@ export default createStore({
         accessToken: '',
         fetchedUsers: [],
         fetchedWall: [],
-        loggedUserId: null
+        loggedUserId: null,
+        fetchedCheckedUsersFriends: []
 
     },
     getters: {
@@ -36,6 +35,9 @@ export default createStore({
         },
         getFetchedUsers: (state) => {
             return state.fetchedUsers
+        },
+        getFetchedCheckedUsersFriends: (state) => {
+            return state.fetchedCheckedUsersFriends
         },
         getFetchedWall: (state) => {
             return state.fetchedWall
@@ -64,6 +66,9 @@ export default createStore({
         setFetchedUsers: (state, {fetchedUsers}) => {
             state.fetchedUsers = fetchedUsers
         },
+        setFetchedCheckedUsersFriends: (state, {fetchedCheckedUsersFriends}) => {
+            state.fetchedCheckedUsersFriends = fetchedCheckedUsersFriends
+        },
         setFetchedWall: (state, {fetchedWall}) => {
             state.fetchedWall = fetchedWall
         },
@@ -88,6 +93,38 @@ export default createStore({
             })
             const payload = res.response.items
             ctx.commit('setFetchedUsers', {fetchedUsers: payload})
+        },
+        fetchCheckedUsersFriends: async (ctx, {userIds}) => {
+            let allFriendsList = []
+            let resultFriendsList = []
+            let checkedUserIds = {}
+            for (const id of userIds) {
+                const res = await jsonp(`https://api.vk.com/method/friends.get`, {
+                    user_id: id,
+                    fields: 'name,photo,bdate,common_count',
+                    access_token: ctx.state.accessToken,
+                    v: 5.131
+                })
+                allFriendsList = [...allFriendsList, ...res.response.items]
+            }
+            allFriendsList.forEach((user) => {
+                if (checkedUserIds[user.id]) {
+                    checkedUserIds[user.id] += 1
+                } else {
+                    checkedUserIds[user.id] = 1
+                }
+            })
+            allFriendsList.forEach((user) => {
+                if (checkedUserIds[user.id] && user.first_name !== "DELETED") {
+                    user.countCheckedUserMatch = checkedUserIds[user.id]
+                    resultFriendsList.push(user)
+                    delete checkedUserIds[user.id]
+                }
+            })
+            resultFriendsList.sort((a,b) => {
+                return a.last_name.toLowerCase().localeCompare(b.last_name.toLowerCase())
+            })
+            ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
         },
         fetchUserWall: async (ctx, {userId}) => {
             console.log(123)
