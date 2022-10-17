@@ -1,5 +1,5 @@
 import {createStore} from 'vuex'
-// import axios from "axios";
+import {jsonp} from "vue-jsonp";
 
 export default createStore({
     state: {
@@ -22,7 +22,7 @@ export default createStore({
         ],
         profile: null,
         accessToken: '',
-        // isLoggedIn: false,
+        fetchedUsers: [],
         loggedUserId: null
 
     },
@@ -30,11 +30,17 @@ export default createStore({
         getAllUsers: (state) => {
             return state.users
         },
+        getFetchedUsers: (state) => {
+            return state.fetchedUsers
+        },
         isLoggedIn: (state) => {
             return !!state.accessToken
         },
         getProfile: (state) => {
             return state.profile
+        },
+        getAccessToken: (state) => {
+            return state.accessToken
         },
         getLoggedUserId: (state) => {
             return state.loggedUserId
@@ -48,6 +54,9 @@ export default createStore({
         setUsers: (state, {users}) => {
             state.users = users
         },
+        setFetchedUsers: (state, {fetchedUsers}) => {
+            state.fetchedUsers = fetchedUsers
+        },
         setProfile: (state, {userInfo}) => {
             state.profile = userInfo
         },
@@ -59,8 +68,16 @@ export default createStore({
         loginVK: async (ctx, {appId}) => {
             window.location.href = `https://oauth.vk.com/authorize?client_id=${appId}&display=popup&redirect_uri=http://localhost:8080&scope=friends&users&response_type=token&v=v=5.131`
         },
-        getUserFriends: async (ctx, {userId}) => {
-            console.log(userId)
+        fetchUserFriends: async (ctx, {userId}) => {
+            const res = await jsonp(`https://api.vk.com/method/friends.get`, {
+                user_id: userId,
+                fields: 'name,photo,bdate',
+                access_token: ctx.state.accessToken,
+                count: '20',
+                v: 5.131
+            })
+            const payload = res.response.items
+            ctx.commit('setFetchedUsers', {fetchedUsers: payload})
         }
     },
     modules: {}
