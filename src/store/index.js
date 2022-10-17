@@ -23,6 +23,7 @@ export default createStore({
         profile: null,
         accessToken: '',
         fetchedUsers: [],
+        fetchedWall: [],
         loggedUserId: null
 
     },
@@ -32,6 +33,9 @@ export default createStore({
         },
         getFetchedUsers: (state) => {
             return state.fetchedUsers
+        },
+        getFetchedWall: (state) => {
+            return state.fetchedWall
         },
         isLoggedIn: (state) => {
             return !!state.accessToken
@@ -57,6 +61,9 @@ export default createStore({
         setFetchedUsers: (state, {fetchedUsers}) => {
             state.fetchedUsers = fetchedUsers
         },
+        setFetchedWall: (state, {fetchedWall}) => {
+            state.fetchedWall = fetchedWall
+        },
         setProfile: (state, {userInfo}) => {
             state.profile = userInfo
         },
@@ -78,6 +85,16 @@ export default createStore({
             })
             const payload = res.response.items
             ctx.commit('setFetchedUsers', {fetchedUsers: payload})
+        },
+        fetchUserWall: async (ctx, {userId}) => {
+            const res = await jsonp(`https://api.vk.com/method/wall.get`, {
+                owner_id: userId,
+                access_token: ctx.state.accessToken,
+                count: '10',
+                v: 5.131
+            })
+            const payload = res.response.items
+            ctx.commit('setFetchedWall', {fetchedWall: payload})
         }
     },
     modules: {}
