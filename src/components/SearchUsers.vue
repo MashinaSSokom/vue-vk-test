@@ -1,30 +1,45 @@
 <template>
   <div class="search">
     <template v-if="this.isLoggedIn">
-      <input v-model="searchString" @input="() => findUsers(searchString)"/>
+
       <button class="search__button" @click="clickSearchButtonHandler">Построить</button>
       <div class="search__wrapper">
         <template v-if="this.getFetchedUsers">
-          <ul class="search-list">
-            <template v-for="user in this.getFetchedUsers" :key="user.id">
-              <li class="search-list__user" @click="() => userClickHandler(user.id)">
-                <img :src="user.photo" alt="">
-                <p>id: {{ user.id }}</p>
-                <router-link :to="`/profile/${user.id}`"><p>{{ `${user.first_name} ${user.last_name}` }}</p>
-                </router-link>
-                <p>Общих друзей: {{ user.common_count }}</p>
-              </li>
-              <!--TODO: Подгрузка следующих 20-->
+          <div class="search__container">
+            <input v-model="searchString" @input="() => findUsers(searchString)"/>
+            <ul class="search-list">
+              <template v-for="user in this.getFetchedUsers" :key="user.id">
+                <li class="search-list__user" @click="() => userClickHandler(user.id)">
+                  <img :src="user.photo" alt="">
+                  <p>id: {{ user.id }}</p>
+                  <router-link :to="`/profile/${user.id}`"><p>{{ `${user.first_name} ${user.last_name}` }}</p>
+                  </router-link>
+                  <p>Общих друзей: {{ user.common_count }}</p>
+                </li>
+                <!--TODO: Подгрузка следующих 20-->
+              </template>
+            </ul>
+          </div>
+
+        </template>
+        <div class="search__checked-users">
+          <p>ID выбранных пользователей:</p>
+          <ul>
+            <template v-for="id in checkedUsersIds" :key="id">
+              <li>{{ id }}</li>
             </template>
           </ul>
-        </template>
-
-        <ul class="search__checked-users">
-          <template v-for="id in checkedUsersIds" :key="id">
-            <li>{{ id }}</li>
+        </div>
+      </div>
+      <div class="fetched-users">
+        <p>Найденные друзья выбранных пользователей:</p>
+          <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
+            <div class="user-card">
+              <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+              <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+              <p>Общих выбранных друзей: {{user.countCheckedUserMatch}}</p>
+            </div>
           </template>
-
-        </ul>
       </div>
     </template>
     <template v-else>
@@ -42,7 +57,8 @@ export default {
     return {
       searchString: '',
       foundUsers: [],
-      checkedUsersIds: []
+      checkedUsersIds: [],
+      searchActive: false
     }
   },
   beforeMount() {
@@ -50,10 +66,10 @@ export default {
     this.foundUsers = this.getAllUsers.slice(0, 20)
   },
   computed: {
-    ...mapGetters(['getAllUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers']),
+    ...mapGetters(['getAllUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
-    ...mapActions(['fetchUserFriends']),
+    ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends']),
     findUsers(searchString) {
       this.foundUsers = this.getAllUsers.filter((user) =>
           user.name.toLowerCase().startsWith(searchString.toLowerCase())
@@ -63,7 +79,7 @@ export default {
       if (this.checkedUsersIds.length === 0) {
         this.fetchUserFriends({userId: this.getLoggedUserId})
       } else {
-        console.log('checkedUsers search')
+        this.fetchCheckedUsersFriends({userIds: this.checkedUsersIds})
       }
     },
     userClickHandler(userId) {
@@ -88,9 +104,15 @@ export default {
     display: flex;
   }
 
+  .search__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+  }
+
   .search__checked-users {
-    width: 25%;
-    min-height: 150px;
+    width: 200px;
+    height: 250px;
     border: 1px solid grey;
   }
 
@@ -103,6 +125,8 @@ export default {
     margin-right: 20px;;
 
     .search-list__user {
+      display: flex;
+      width: 500px;
       border: 1px solid grey;
     }
 
@@ -111,6 +135,27 @@ export default {
     }
 
   }
+
+  .fetched-users{
+    display: flex;
+    flex-wrap: wrap;
+    .user-card{
+      width: 200px;
+      height: 350px;
+      border: 1px solid grey;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      padding: 5px;
+      margin: 2px;
+
+      .user-card__avatar{
+        width: 200px;
+        height: 200px;
+      }
+    }
+  }
+
 }
 
 

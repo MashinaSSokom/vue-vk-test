@@ -101,7 +101,7 @@ export default createStore({
             for (const id of userIds) {
                 const res = await jsonp(`https://api.vk.com/method/friends.get`, {
                     user_id: id,
-                    fields: 'name,photo,bdate,common_count',
+                    fields: 'name,photo_200_orig,bdate,common_count',
                     access_token: ctx.state.accessToken,
                     v: 5.131
                 })
@@ -127,14 +127,12 @@ export default createStore({
             ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
         },
         fetchUserWall: async (ctx, {userId}) => {
-            console.log(123)
             const res = await jsonp(`https://api.vk.com/method/wall.get`, {
                 owner_id: userId,
                 access_token: ctx.state.accessToken,
                 count: '10',
                 v: 5.131
             })
-            console.log(res)
             const payload = res.response.items
             ctx.commit('setFetchedWall', {fetchedWall: payload})
         }
