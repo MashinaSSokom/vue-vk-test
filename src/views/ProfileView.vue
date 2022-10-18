@@ -1,5 +1,6 @@
 <template>
   <div class="profile">
+    <router-link to="/">Назад</router-link>
     <template v-if="this.getFetchedWall">
       <div class="posts">
         <!--TODO: Сделать подгрузку следующих 10 постов-->

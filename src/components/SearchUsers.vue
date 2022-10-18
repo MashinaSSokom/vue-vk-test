@@ -1,13 +1,12 @@
 <template>
   <div class="search">
     <template v-if="this.isLoggedIn">
-
-      <button class="search__button" @click="clickComputeButtonHandler">Построить</button>
+      <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
       <div class="search__wrapper">
         <template v-if="this.getFetchedUsers">
           <div class="search__container">
             <input v-model="searchQuery" @input="() => findUsers(searchQuery)" @focus="() => this.searchActive=true" @focusout="() => this.searchActive=false"/>
-            <button @click="clickSearchButtonHandler">Найти</button>
+            <my-button @click="clickSearchButtonHandler">Найти</my-button>
             <div class="search-list" >
               <template v-for="user in this.getFetchedUsers" :key="user.id">
                 <div class="search-list__user" @click="() => userClickHandler(user.id)">
@@ -54,9 +53,11 @@
 
 <script>
 import {mapActions, mapGetters} from "vuex";
+import MyButton from "@/components/UI/MyButton";
 
 export default {
   name: "SearchUsers",
+  components: {MyButton},
   data() {
     return {
       foundUsers: [],
