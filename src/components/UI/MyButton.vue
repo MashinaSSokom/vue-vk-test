@@ -16,7 +16,7 @@ export default {
 .my-button{
   color: $text-color;
   padding: 5px;
-  height: 25px;
+  height: 30px;
   background: $main-color;
   border-radius: 5px;
   cursor: pointer;

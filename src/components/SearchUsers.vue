@@ -5,15 +5,17 @@
         <template v-if="this.getFetchedUsers">
           <div class="search__menu">
             <div class="search__container">
-              <my-input v-model="searchQuery" @input="() => findUsers(searchQuery)"
+              <my-input v-model="this.searchQuery"
+                        @change="handleChange"
                         @focus="() => this.searchActive=true"
                         @focusout="() => this.searchActive=false"/>
               <my-button @click="clickSearchButtonHandler">Найти</my-button>
-              <p class="search__close-results" v-show="showSearchedUsers" @click="closeSearchResults">Скрыть результаты...</p>
+              <p class="search__close-results" v-show="showSearchedUsers" @click="closeSearchResults">Скрыть
+                результаты...</p>
             </div>
             <div class="search-list" v-show="showSearchedUsers" v-click-outside="clickOutsideSearchMenuHandler">
               <template v-for="user in this.getFetchedUsers" :key="user.id">
-                <div class="search-list__user" @click="() => userClickHandler(user.id)">
+                <div class="search-list__user" @click="() => userClickHandler(user)">
                   <img :src="user.photo" alt="">
                   <p>id: {{ user.id }}</p>
                   <router-link :to="`/profile/${user.id}`"><p>{{ `${user.first_name} ${user.last_name}` }}</p>
@@ -26,16 +28,20 @@
           </div>
 
         </template>
+        <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
+        <div class="search__checked-users">
+          <p>ID выбранных пользователей:</p>
+          <ul>
+            <template v-for="user in checkedUsersIds" :key="user.id">
+              <li>
+                <p>{{ user.id }}</p>
+                <p>{{ user.name }}</p>
+              </li>
+            </template>
+          </ul>
+        </div>
         <div v-show="false">
-          <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
-          <div class="search__checked-users">
-            <p>ID выбранных пользователей:</p>
-            <ul>
-              <template v-for="id in checkedUsersIds" :key="id">
-                <li>{{ id }}</li>
-              </template>
-            </ul>
-          </div>
+
           <div class="fetched-users">
             <p>Найденные друзья выбранных пользователей:</p>
             <div class="fetched-users__container">
@@ -84,8 +90,10 @@ export default {
   },
   methods: {
     ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
+    handleChange(e) {
+      this.searchQuery = e.target.value
+    },
     closeSearchResults() {
-      console.log(123)
       this.showSearchedUsers = false
     },
     findUsers(searchQuery) {
@@ -94,6 +102,7 @@ export default {
       )
     },
     clickSearchButtonHandler() {
+      console.log(this.searchQuery)
       this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}` : this.searchQuery})
       this.showSearchedUsers = true
     },
@@ -104,11 +113,11 @@ export default {
         this.fetchCheckedUsersFriends({userIds: this.checkedUsersIds})
       }
     },
-    userClickHandler(userId) {
+    userClickHandler(user) {
 
-      const index = this.checkedUsersIds.indexOf(userId)
+      const index = this.checkedUsersIds.findIndex(el => el.id === user.id)
       if (index === -1) {
-        this.checkedUsersIds.push(userId)
+        this.checkedUsersIds.push({id: user.id, name: `${user.last_name} ${user.first_name}`})
       } else {
         this.checkedUsersIds.splice(index, 1)
       }
@@ -129,7 +138,8 @@ export default {
     display: flex;
     justify-content: center;
   }
-  .search__menu{
+
+  .search__menu {
     display: flex;
     flex-direction: column;
     position: relative;
@@ -139,7 +149,7 @@ export default {
     position: relative;
     display: flex;
 
-    .search__close-results{
+    .search__close-results {
       position: absolute;
       font-size: 10px;
       width: 100px;
@@ -149,7 +159,7 @@ export default {
       text-underline: black;
     }
 
-    input{
+    input {
       width: 435px;
       position: relative;
     }
