@@ -6,7 +6,7 @@
           <div class="search__menu">
             <div class="search__container">
               <my-input v-model="this.searchQuery"
-                        @change="handleChange"
+                        @input="handleInput"
                         @focus="() => this.searchActive=true"
                         @focusout="() => this.searchActive=false"/>
               <my-button @click="clickSearchButtonHandler">Найти</my-button>
@@ -90,7 +90,7 @@ export default {
   },
   methods: {
     ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
-    handleChange(e) {
+    handleInput(e) {
       this.searchQuery = e.target.value
     },
     closeSearchResults() {
