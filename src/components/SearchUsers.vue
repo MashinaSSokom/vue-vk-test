@@ -182,7 +182,8 @@ export default {
     display: flex;
     justify-content: center;
     flex-direction: column;
-    height: 500px;
+    height: fit-content;
+    max-height: 500px;
     overflow-y: scroll;
     position: absolute;
     top: 30px;
