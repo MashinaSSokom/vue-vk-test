@@ -1,13 +1,17 @@
 <template>
   <div class="search">
     <template v-if="this.isLoggedIn">
-      <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
       <div class="search__wrapper">
         <template v-if="this.getFetchedUsers">
-          <div class="search__container">
-            <input v-model="searchQuery" @input="() => findUsers(searchQuery)" @focus="() => this.searchActive=true" @focusout="() => this.searchActive=false"/>
-            <my-button @click="clickSearchButtonHandler">Найти</my-button>
-            <div class="search-list" >
+          <div class="search__menu">
+            <div class="search__container">
+              <my-input v-model="searchQuery" @input="() => findUsers(searchQuery)"
+                        @focus="() => this.searchActive=true"
+                        @focusout="() => this.searchActive=false"/>
+              <my-button @click="clickSearchButtonHandler">Найти</my-button>
+              <p class="search__close-results" v-show="showSearchedUsers" @click="closeSearchResults">Скрыть результаты...</p>
+            </div>
+            <div class="search-list" v-show="showSearchedUsers" v-click-outside="clickOutsideSearchMenuHandler">
               <template v-for="user in this.getFetchedUsers" :key="user.id">
                 <div class="search-list__user" @click="() => userClickHandler(user.id)">
                   <img :src="user.photo" alt="">
@@ -22,28 +26,30 @@
           </div>
 
         </template>
-        <div class="search__checked-users">
-          <p>ID выбранных пользователей:</p>
-          <ul>
-            <template v-for="id in checkedUsersIds" :key="id">
-              <li>{{ id }}</li>
-            </template>
-          </ul>
-        </div>
-        <div class="fetched-users">
-          <p>Найденные друзья выбранных пользователей:</p>
-          <div class="fetched-users__container">
-            <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-              <div class="user-card">
-                <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
-                <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-                <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
-              </div>
-            </template>
+        <div v-show="false">
+          <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
+          <div class="search__checked-users">
+            <p>ID выбранных пользователей:</p>
+            <ul>
+              <template v-for="id in checkedUsersIds" :key="id">
+                <li>{{ id }}</li>
+              </template>
+            </ul>
+          </div>
+          <div class="fetched-users">
+            <p>Найденные друзья выбранных пользователей:</p>
+            <div class="fetched-users__container">
+              <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
+                <div class="user-card">
+                  <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+                  <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+                  <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>
-
     </template>
     <template v-else>
       <p>Для начала войдите через ВК</p>
@@ -54,16 +60,19 @@
 <script>
 import {mapActions, mapGetters} from "vuex";
 import MyButton from "@/components/UI/MyButton";
+import MyInput from "@/components/UI/MyInput";
+import ClickOutside from 'vue-click-outside'
 
 export default {
   name: "SearchUsers",
-  components: {MyButton},
+  components: {MyInput, MyButton},
   data() {
     return {
       foundUsers: [],
       checkedUsersIds: [],
       searchActive: false,
-      searchQuery:''
+      searchQuery: '',
+      showSearchedUsers: false
     }
   },
   beforeMount() {
@@ -75,13 +84,18 @@ export default {
   },
   methods: {
     ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
+    closeSearchResults() {
+      console.log(123)
+      this.showSearchedUsers = false
+    },
     findUsers(searchQuery) {
       this.foundUsers = this.getAllUsers.filter((user) =>
           user.name.toLowerCase().startsWith(searchQuery.toLowerCase())
       )
     },
     clickSearchButtonHandler() {
-      this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}`:this.searchQuery})
+      this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}` : this.searchQuery})
+      this.showSearchedUsers = true
     },
     clickComputeButtonHandler() {
       if (this.checkedUsersIds.length === 0) {
@@ -99,6 +113,9 @@ export default {
         this.checkedUsersIds.splice(index, 1)
       }
     }
+  },
+  directives: {
+    ClickOutside
   }
 }
 </script>
@@ -110,13 +127,38 @@ export default {
   //justify-content: center;
   .search__wrapper {
     display: flex;
+    justify-content: center;
+  }
+  .search__menu{
+    display: flex;
+    flex-direction: column;
+    position: relative;
   }
 
   .search__container {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    justify-content: left;
-    margin-right: 20px;
+
+    .search__close-results{
+      position: absolute;
+      font-size: 10px;
+      width: 100px;
+      right: 70px;
+      top: 15px;
+      cursor: pointer;
+      text-underline: black;
+    }
+
+    input{
+      width: 435px;
+      position: relative;
+    }
+
+    button {
+      margin-left: 5px;
+      height: 30px;
+      width: 60px;
+    }
   }
 
   .search__checked-users {
@@ -130,21 +172,23 @@ export default {
     display: flex;
     justify-content: center;
     flex-direction: column;
-    //width: 75%;
     height: 500px;
     overflow-y: scroll;
+    position: absolute;
+    top: 30px;
+    z-index: 2;
 
     .search-list__user {
       display: flex;
       flex: 1;
       width: 500px;
       border: 1px solid grey;
-    }
 
-    .search-list__user:hover {
-      background: greenyellow;
-    }
+      &:hover {
+        background: greenyellow;
 
+      }
+    }
   }
 
   .fetched-users {
