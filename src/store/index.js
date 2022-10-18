@@ -4,23 +4,7 @@ import createPersistedState from "vuex-persistedstate";
 
 export default createStore({
     state: {
-        users: [
-            {
-                id: 1,
-                name: 'Ivan',
-                friends: [2, 3]
-            },
-            {
-                id: 2,
-                name: 'Fedor',
-                friends: [1]
-            },
-            {
-                id: 3,
-                name: 'Maria',
-                friends: [1]
-            }
-        ],
+        checkedUsers: [],
         profile: null,
         accessToken: '',
         fetchedWall: [],
@@ -32,6 +16,9 @@ export default createStore({
     getters: {
         getAllUsers: (state) => {
             return state.users
+        },
+        getCheckedUsers: (state) => {
+            return state.checkedUsers
         },
         getFetchedUsers: (state) => {
             return state.fetchedUsers
@@ -66,6 +53,9 @@ export default createStore({
         setUsers: (state, {users}) => {
             state.users = users
         },
+        setCheckedUsers: (state, {checkedUsers}) => {
+            state.checkedUsers = checkedUsers
+        },
         setFetchedUsers: (state, {fetchedUsers}) => {
             state.fetchedUsers = fetchedUsers
         },
@@ -83,6 +73,16 @@ export default createStore({
         },
         setLoggedUserId: (state, {userId}) => {
             state.loggedUserId = userId
+        },
+        logout: (state) => {
+            state.checkedUsers = []
+            state.profile = null
+            state.accessToken = ''
+            state.fetchedWall = []
+            state.loggedUserId = null
+            state.fetchedUsers = []
+            state.fetchedUserFriends = []
+            state.fetchedCheckedUsersFriends = []
         }
     },
     actions: {
@@ -111,6 +111,9 @@ export default createStore({
             ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
         },
         fetchCheckedUsersFriends: async (ctx, {userIds}) => {
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
             let allFriendsList = []
             let resultFriendsList = []
             let checkedUserIds = {}
@@ -121,7 +124,10 @@ export default createStore({
                     access_token: ctx.state.accessToken,
                     v: 5.131
                 })
-                allFriendsList = [...allFriendsList, ...res.response.items]
+                if (!res.error) {
+                    allFriendsList = [...allFriendsList, ...res.response.items]
+                }
+                await sleep(400)
             }
             allFriendsList.forEach((user) => {
                 if (checkedUserIds[user.id]) {
@@ -140,6 +146,7 @@ export default createStore({
             resultFriendsList.sort((a, b) => {
                 return a.last_name.toLowerCase().localeCompare(b.last_name.toLowerCase())
             })
+            console.log(resultFriendsList)
             ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
         },
         fetchUserWall: async (ctx, {userId}) => {

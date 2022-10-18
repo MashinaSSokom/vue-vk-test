@@ -29,31 +29,18 @@
 
         </template>
         <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
-        <div class="search__checked-users">
-          <p>ID выбранных пользователей:</p>
-          <ul>
-            <template v-for="user in checkedUsersIds" :key="user.id">
-              <li>
-                <p>{{ user.id }}</p>
-                <p>{{ user.name }}</p>
-              </li>
-            </template>
-          </ul>
-        </div>
-        <div v-show="false">
 
-          <div class="fetched-users">
-            <p>Найденные друзья выбранных пользователей:</p>
-            <div class="fetched-users__container">
-              <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-                <div class="user-card">
-                  <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
-                  <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-                  <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
-                </div>
-              </template>
+      </div>
+      <div class="fetched-users">
+        <p>Найденные друзья выбранных пользователей:</p>
+        <div class="fetched-users__container">
+          <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
+            <div class="user-card">
+              <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+              <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+              <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </template>
@@ -64,7 +51,7 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import MyButton from "@/components/UI/MyButton";
 import MyInput from "@/components/UI/MyInput";
 import ClickOutside from 'vue-click-outside'
@@ -86,9 +73,10 @@ export default {
     this.foundUsers = this.getAllUsers.slice(0, 20)
   },
   computed: {
-    ...mapGetters(['getAllUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedUserFriends', 'getFetchedCheckedUsersFriends']),
+    ...mapGetters(['getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedUserFriends', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
+    ...mapMutations(['setCheckedUsers']),
     ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
     handleInput(e) {
       this.searchQuery = e.target.value
@@ -102,25 +90,23 @@ export default {
       )
     },
     clickSearchButtonHandler() {
-      console.log(this.searchQuery)
       this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}` : this.searchQuery})
       this.showSearchedUsers = true
     },
     clickComputeButtonHandler() {
-      if (this.checkedUsersIds.length === 0) {
-        this.fetchUserFriends({userId: this.getLoggedUserId})
-      } else {
-        this.fetchCheckedUsersFriends({userIds: this.checkedUsersIds})
+      if (this.getCheckedUsers.length !== 0) {
+        this.fetchCheckedUsersFriends({userIds: this.getCheckedUsers.map(el => el.id)})
       }
     },
     userClickHandler(user) {
-
-      const index = this.checkedUsersIds.findIndex(el => el.id === user.id)
+      const index = this.getCheckedUsers.findIndex(el => el.id === user.id)
+      let checkedUsers = [...this.getCheckedUsers]
       if (index === -1) {
-        this.checkedUsersIds.push({id: user.id, name: `${user.last_name} ${user.first_name}`})
+        checkedUsers.push({id: user.id, name: `${user.last_name} ${user.first_name}`})
       } else {
-        this.checkedUsersIds.splice(index, 1)
+        checkedUsers.splice(index, 1)
       }
+      this.setCheckedUsers({checkedUsers: checkedUsers})
     }
   },
   directives: {

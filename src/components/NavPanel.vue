@@ -2,16 +2,24 @@
   <div class="navbar">
     <router-link to="/">Главная</router-link>
     |
-    <a href="#" @click="loginHandler">Войти через ВК</a>
+    <template v-if="!this.isLoggedIn">
+      <a href="#" @click="loginHandler">Войти через ВК</a>
+    </template>
+    <template v-else>
+      <a href="#" @click="clickExitHandler">Выйти</a>
+      <checked-users/>
+    </template>
 <!--    todo: Кнопка выйти, если пользователь залогинен-->
   </div>
 </template>
 
 <script>
 import {mapActions, mapMutations, mapGetters} from "vuex";
+import CheckedUsers from "@/components/CheckedUsers";
 
 export default {
   name: "NavPanel",
+  components: {CheckedUsers},
   beforeMount() {
     const hash = window.location.hash
     if (hash.toString().includes('access_token')) {
@@ -25,12 +33,15 @@ export default {
     ...mapGetters(['isLoggedIn'])
   },
   methods: {
-    ...mapMutations(['setAccessToken','setLoggedUserId']),
+    ...mapMutations(['setAccessToken','setLoggedUserId', 'logout']),
     ...mapActions(['loginVK']),
     loginHandler() {
       const appId = 51450674
       this.loginVK({appId: appId})
     },
+    clickExitHandler() {
+      this.logout()
+    }
   }
 }
 </script>
