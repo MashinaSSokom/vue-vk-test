@@ -2,12 +2,13 @@
   <div class="search">
     <template v-if="this.isLoggedIn">
 
-      <button class="search__button" @click="clickSearchButtonHandler">Построить</button>
+      <button class="search__button" @click="clickComputeButtonHandler">Построить</button>
       <div class="search__wrapper">
         <template v-if="this.getFetchedUsers">
           <div class="search__container">
-            <input v-model="searchString" @input="() => findUsers(searchString)"/>
-            <div class="search-list">
+            <input v-model="searchQuery" @input="() => findUsers(searchQuery)" @focus="() => this.searchActive=true" @focusout="() => this.searchActive=false"/>
+            <button @click="clickSearchButtonHandler">Найти</button>
+            <div class="search-list" >
               <template v-for="user in this.getFetchedUsers" :key="user.id">
                 <div class="search-list__user" @click="() => userClickHandler(user.id)">
                   <img :src="user.photo" alt="">
@@ -37,7 +38,7 @@
               <div class="user-card">
                 <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
                 <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-                <p>Общих выбранных друзей: {{ user.countCheckedUserMatch }}</p>
+                <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
               </div>
             </template>
           </div>
@@ -58,10 +59,10 @@ export default {
   name: "SearchUsers",
   data() {
     return {
-      searchString: '',
       foundUsers: [],
       checkedUsersIds: [],
-      searchActive: false
+      searchActive: false,
+      searchQuery:''
     }
   },
   beforeMount() {
@@ -69,16 +70,19 @@ export default {
     this.foundUsers = this.getAllUsers.slice(0, 20)
   },
   computed: {
-    ...mapGetters(['getAllUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedCheckedUsersFriends']),
+    ...mapGetters(['getAllUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedUserFriends', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
-    ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends']),
-    findUsers(searchString) {
+    ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
+    findUsers(searchQuery) {
       this.foundUsers = this.getAllUsers.filter((user) =>
-          user.name.toLowerCase().startsWith(searchString.toLowerCase())
+          user.name.toLowerCase().startsWith(searchQuery.toLowerCase())
       )
     },
     clickSearchButtonHandler() {
+      this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}`:this.searchQuery})
+    },
+    clickComputeButtonHandler() {
       if (this.checkedUsersIds.length === 0) {
         this.fetchUserFriends({userId: this.getLoggedUserId})
       } else {

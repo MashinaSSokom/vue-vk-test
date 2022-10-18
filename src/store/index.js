@@ -23,11 +23,11 @@ export default createStore({
         ],
         profile: null,
         accessToken: '',
-        fetchedUsers: [],
         fetchedWall: [],
         loggedUserId: null,
+        fetchedUsers: [],
+        fetchedUserFriends: [],
         fetchedCheckedUsersFriends: []
-
     },
     getters: {
         getAllUsers: (state) => {
@@ -35,6 +35,9 @@ export default createStore({
         },
         getFetchedUsers: (state) => {
             return state.fetchedUsers
+        },
+        getFetchedUserFriends: (state) => {
+            return state.fetchedUserFriends
         },
         getFetchedCheckedUsersFriends: (state) => {
             return state.fetchedCheckedUsersFriends
@@ -66,6 +69,9 @@ export default createStore({
         setFetchedUsers: (state, {fetchedUsers}) => {
             state.fetchedUsers = fetchedUsers
         },
+        setFetchedUserFriends: (state, {fetchedUserFriends}) => {
+            state.fetchedUserFriends = fetchedUserFriends
+        },
         setFetchedCheckedUsersFriends: (state, {fetchedCheckedUsersFriends}) => {
             state.fetchedCheckedUsersFriends = fetchedCheckedUsersFriends
         },
@@ -83,16 +89,26 @@ export default createStore({
         loginVK: async (ctx, {appId}) => {
             window.location.href = `https://oauth.vk.com/authorize?client_id=${appId}&display=popup&redirect_uri=http://localhost:8080&scope=friends&users&response_type=token&v=v=5.131`
         },
-        fetchUserFriends: async (ctx, {userId}) => {
-            const res = await jsonp(`https://api.vk.com/method/friends.get`, {
-                user_id: userId,
-                fields: 'name,photo,bdate,common_count',
+        fetchUsers: async (ctx, {q}) => {
+            const res = await jsonp(`https://api.vk.com/method/users.search`, {
+                q: q,
                 access_token: ctx.state.accessToken,
                 count: '20',
                 v: 5.131
             })
             const payload = res.response.items
             ctx.commit('setFetchedUsers', {fetchedUsers: payload})
+        },
+        fetchUserFriends: async (ctx, {userId}) => {
+            const res = await jsonp(`https://api.vk.com/method/friends.get`, {
+                user_id: userId,
+                fields: 'name,photo,bdate,common_count, sex',
+                access_token: ctx.state.accessToken,
+                count: '20',
+                v: 5.131
+            })
+            const payload = res.response.items
+            ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
         },
         fetchCheckedUsersFriends: async (ctx, {userIds}) => {
             let allFriendsList = []
@@ -101,7 +117,7 @@ export default createStore({
             for (const id of userIds) {
                 const res = await jsonp(`https://api.vk.com/method/friends.get`, {
                     user_id: id,
-                    fields: 'name,photo_200_orig,bdate,common_count',
+                    fields: 'name,photo_200_orig,bdate,sex',
                     access_token: ctx.state.accessToken,
                     v: 5.131
                 })
@@ -121,7 +137,7 @@ export default createStore({
                     delete checkedUserIds[user.id]
                 }
             })
-            resultFriendsList.sort((a,b) => {
+            resultFriendsList.sort((a, b) => {
                 return a.last_name.toLowerCase().localeCompare(b.last_name.toLowerCase())
             })
             ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
