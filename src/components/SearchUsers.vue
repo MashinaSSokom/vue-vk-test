@@ -28,7 +28,6 @@
 
         </template>
         <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
-
       </div>
       <div class="fetched-users">
         <p>Найденные друзья выбранных пользователей:</p>
@@ -127,6 +126,7 @@ export default {
   .search__wrapper {
     display: flex;
     justify-content: center;
+    margin-bottom: 40px;
   }
 
   .search__menu {
