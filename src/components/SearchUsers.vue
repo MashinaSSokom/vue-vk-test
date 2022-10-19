@@ -9,7 +9,7 @@
                         @input="handleInput"
                         @focus="() => this.searchActive=true"
                         @focusout="() => this.searchActive=false"/>
-              <my-button @click="clickSearchButtonHandler">Найти</my-button>
+              <my-button class="search__button" @click="clickSearchButtonHandler">Найти</my-button>
               <p class="search__close-results" v-show="showSearchedUsers" @click="closeSearchResults">Скрыть
                 результаты...</p>
             </div>
@@ -17,35 +17,42 @@
               <template v-for="user in this.getFetchedUsers" :key="user.id">
                 <div class="search-list__user" @click="() => userClickHandler(user)">
                   <!--                  <img :src="user.photo" alt="">-->
-                  <p>id:<router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link></p>
+                  <p>id:
+                    <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
+                  </p>
                   <p>{{ `${user.first_name} ${user.last_name}` }}</p>
                   <p>Общих друзей: {{ user.common_count }}</p>
                 </div>
                 <!--TODO: Подгрузка следующих 20-->
               </template>
+              <div class="search-list__next-users" @click="clickSearchNextUsers">
+                <p>Загрузить следующие 10 записей...</p>
+              </div>
             </div>
           </div>
 
         </template>
-        <my-button class="search__button" @click="clickComputeButtonHandler">Построить</my-button>
       </div>
-      <div class="fetched-users">
-        <p>Найденные друзья выбранных пользователей:</p>
-        <div class="fetched-users__container">
-          <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-            <div class="user-card">
-              <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
-              <p>ID:
-                <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
-              </p>
-              <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-              <p>{{ user.counters }}</p>
-              <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
-              <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
-            </div>
-          </template>
+      <my-button class="compute__button" @click="clickComputeButtonHandler">Построить</my-button>
+      <template v-if="this.getFetchedCheckedUsersFriends.length !== 0">
+        <div class="fetched-users">
+          <p>Найденные друзья выбранных пользователей:</p>
+          <div class="fetched-users__container">
+            <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
+              <div class="user-card">
+                <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+                <p>ID:
+                  <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
+                </p>
+                <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+                <p>{{ user.counters }}</p>
+                <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
+                <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
+              </div>
+            </template>
+          </div>
         </div>
-      </div>
+      </template>
     </template>
     <template v-else>
       <p>Для начала войдите через ВК</p>
@@ -76,10 +83,10 @@ export default {
     this.foundUsers = this.getAllUsers.slice(0, 20)
   },
   computed: {
-    ...mapGetters(['getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedUserFriends', 'getFetchedCheckedUsersFriends']),
+    ...mapGetters(['getUsersOffset', 'getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedUserFriends', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
-    ...mapMutations(['setCheckedUsers']),
+    ...mapMutations(['setCheckedUsers', 'setUsersOffset']),
     ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
     handleInput(e) {
       this.searchQuery = e.target.value
@@ -93,8 +100,13 @@ export default {
       )
     },
     clickSearchButtonHandler() {
+      this.setUsersOffset({offset: 0})
       this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}` : this.searchQuery})
       this.showSearchedUsers = true
+    },
+    clickSearchNextUsers() {
+      this.setUsersOffset({offset: this.getUsersOffset + 20})
+      this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}` : this.searchQuery})
     },
     clickComputeButtonHandler() {
       if (this.getCheckedUsers.length !== 0) {
@@ -133,6 +145,15 @@ export default {
     display: flex;
     flex-direction: column;
     position: relative;
+  }
+
+  .search__button {
+    background: $light-color;
+    color: #000;
+  }
+
+  .compute__button {
+    margin-bottom: 10px;
   }
 
   .search__container {
@@ -182,11 +203,16 @@ export default {
       border: 1px solid grey;
       background: #fff;
       padding: 5px;
+
       &:hover {
         background: greenyellow;
-
       }
-
+    }
+    .search-list__next-users{
+      cursor: pointer;
+      &:hover{
+        background: greenyellow;
+      }
     }
   }
 
