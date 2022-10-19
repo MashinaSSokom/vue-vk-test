@@ -215,6 +215,9 @@ export default {
     }
     .search-list__next-users{
       cursor: pointer;
+      border: 1px solid grey;
+      background: #fff;
+      padding: 5px;
       &:hover{
         background: greenyellow;
       }
