@@ -94,6 +94,7 @@ export default createStore({
                 q: q,
                 access_token: ctx.state.accessToken,
                 count: '20',
+                fields: 'name,common_count,sex,photo',
                 v: 5.131
             })
             const payload = res.response.items
@@ -102,7 +103,7 @@ export default createStore({
         fetchUserFriends: async (ctx, {userId}) => {
             const res = await jsonp(`https://api.vk.com/method/friends.get`, {
                 user_id: userId,
-                fields: 'name,photo,bdate,common_count, sex',
+                fields: 'name,photo,bdate,common_count,sex',
                 access_token: ctx.state.accessToken,
                 count: '20',
                 v: 5.131
