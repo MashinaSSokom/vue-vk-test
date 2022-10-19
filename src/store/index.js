@@ -2,8 +2,12 @@ import {createStore} from 'vuex'
 import {jsonp} from "vue-jsonp";
 import createPersistedState from "vuex-persistedstate";
 
+
+const redirectUri = `http://localhost:8080`
+
 export default createStore({
     state: {
+        searchQuery: '',
         checkedUsers: [],
         profile: null,
         accessToken: '',
@@ -13,10 +17,14 @@ export default createStore({
         fetchedUserFriends: [],
         fetchedCheckedUsersFriends: [],
         usersOffset: 0,
+        userFriendsOffset: 0,
         checkedUsersFriendsOffset: 0,
         postOffset: 0,
     },
     getters: {
+        getSearchQuery: (state) => {
+            return state.searchQuery
+        },
         getAllUsers: (state) => {
             return state.users
         },
@@ -28,6 +36,9 @@ export default createStore({
         },
         getUsersOffset: (state) => {
             return state.usersOffset
+        },
+        getUserFriendsOffset: (state) => {
+            return state.userFriendsOffset
         },
         getCheckedUsers: (state) => {
             return state.checkedUsers
@@ -62,8 +73,14 @@ export default createStore({
         setAccessToken: (state, {token}) => {
             state.accessToken = token
         },
+        setSearchQuery: (state, {q}) => {
+            state.searchQuery = q
+        },
         setUsersOffset: (state, {offset}) => {
             state.usersOffset = offset
+        },
+        setUserFriendsOffset: (state, {offset}) => {
+            state.userFriendsOffset = offset
         },
         setCheckedUsersOffset: (state, {offset}) => {
             state.checkedUsersFriendsOffset = offset
@@ -111,7 +128,7 @@ export default createStore({
     },
     actions: {
         loginVK: async (ctx, {appId}) => {
-            window.location.href = `https://oauth.vk.com/authorize?client_id=${appId}&display=popup&redirect_uri=http://localhost:8080&scope=friends&users&response_type=token&v=v=5.131`
+            window.location.href = `https://oauth.vk.com/authorize?client_id=${appId}&display=popup&redirect_uri=${redirectUri}&scope=friends&users&response_type=token&v=v=5.131`
         },
         fetchUsers: async (ctx, {q}) => {
             console.log(ctx.state.usersOffset)
@@ -136,10 +153,17 @@ export default createStore({
                 fields: 'name,photo,bdate,common_count,sex',
                 access_token: ctx.state.accessToken,
                 count: '20',
+                offset: ctx.state.userFriendsOffset,
                 v: 5.131
             })
-            const payload = res.response.items
-            ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
+            if (res.response.items.length !== 0) {
+                const payload = res.response.items
+                if (ctx.state.usersOffset === 0) {
+                    ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
+                } else {
+                    ctx.commit('setFetchedUserFriends', {fetchedUserFriends: [...ctx.state.fetchedUserFriends, ...payload]})
+                }
+            }
         },
         fetchCheckedUsersFriends: async (ctx, {userIds}) => {
             function sleep(ms) {
@@ -190,6 +214,16 @@ export default createStore({
             })
             const payload = res.response.items
             ctx.commit('setFetchedWall', {fetchedWall: payload})
+        },
+        fetchProfile: async (ctx, {userId}) => {
+            const res = await jsonp(`https://api.vk.com/method/users.get`, {
+                user_ids: userId,
+                access_token: ctx.state.accessToken,
+                fields: 'name,sex,photo_200_orig,bdate,counters',
+                v: 5.131
+            })
+            const payload = res.response[0]
+            ctx.commit('setProfile', {userInfo: payload})
         }
     },
     modules: {},

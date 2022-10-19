@@ -15,12 +15,27 @@
           <a :href="`https://vk.com/id${this.getProfile.id}`">Профиль в ВК</a>
         </div>
         <div class="user-info__friends">
-
+          <tempplate v-for="user in this.getFetchedUserFriends" :key="user.id">
+              <div class="user-info__item">
+                <div class="user-item__avatar">
+                  <img :src="user.photo" alt="avatar">
+                </div>
+                <div class="user-item__description">
+                  <p>Имя: {{ `${user.last_name} ${user.first_name}` }}</p>
+                  <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
+                  <a :href="`https://vk.com/id${user.id}`">Профиль в ВК</a>
+                </div>
+              </div>
+          </tempplate>
+          <div class="user-info__item-next" @click="clickSearchNextFriends">
+            <p>Подгрузить еще 10 друзей...</p>
+          </div>
         </div>
       </div>
     </template>
     <template v-if="this.getFetchedWall">
       <div class="posts">
+        <p>Посты:</p>
         <!--TODO: Сделать подгрузку следующих 10 постов-->
         <!--TODO: Проработать другие типы постов (link, репост-есть поле copy_history)-->
         <template v-for="post in this.getFetchedWall" :key="post.id">
@@ -46,30 +61,36 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "ProfileView",
   beforeMount() {
+    this.setUserFriendsOffset({offset: 0})
     const userId = this.$route.params.id
     this.fetchUserWall({userId: userId})
     this.fetchUserFriends({userId: userId})
     this.fetchProfile({userId: userId})
   },
   computed: {
-    ...mapGetters(['getFetchedWall', 'getFetchedUserFriends', 'getProfile']),
+    ...mapGetters(['getFetchedWall', 'getFetchedUserFriends', 'getProfile', 'getUserFriendsOffset']),
   },
   methods: {
+    ...mapMutations(['setUserFriendsOffset']),
     ...mapActions(['fetchUserWall', 'fetchUserFriends', 'fetchProfile']),
     computeBDate(dateString) {
       if (dateString) {
         let d = dateString.split('.')
         if (d.length === 3) {
-          const bDate = new Date(d[2], d[1]-1, d[0])
-          return Math.floor((Date.now() - bDate)/(1000*60*60*24*365))
+          const bDate = new Date(d[2], d[1] - 1, d[0])
+          return Math.floor((Date.now() - bDate) / (1000 * 60 * 60 * 24 * 365))
         }
       }
       return 'Нет информации'
+    },
+    clickSearchNextFriends() {
+      this.setUserFriendsOffset({offset: this.getUserFriendsOffset + 10})
+      this.fetchUserFriends({userId: this.$route.params.id})
     }
   }
 }
@@ -84,6 +105,7 @@ export default {
   .user-info {
     display: flex;
     margin-top: 20px;
+    margin-bottom: 20px;
 
     .user-info__avatar {
       margin-right: 15px;
@@ -93,6 +115,34 @@ export default {
       display: flex;
       flex-direction: column;
       align-items: start;
+      margin-right: 30px;
+    }
+
+    .user-info__friends {
+      max-height: 200px;
+      overflow-y: scroll;
+      justify-content: left;
+      .user-info__item-next{
+        cursor:pointer;
+        background: white;
+        border: 1px solid grey;
+      }
+      .user-info__item {
+        padding: 10px;
+        display: flex;
+        width: 450px;
+        border: 1px solid grey;
+
+        .user-item__avatar {
+          margin-right: 25px;
+        }
+
+        .user-item__description {
+          display: flex;
+          flex-direction: column;
+          align-items: start;
+        }
+      }
     }
   }
 
