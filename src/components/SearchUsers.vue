@@ -83,12 +83,8 @@ export default {
       showSearchedUsers: false
     }
   },
-  beforeMount() {
-    // Первоначально заполняем первыми 20-тью пользователями
-    this.foundUsers = this.getAllUsers.slice(0, 20)
-  },
   computed: {
-    ...mapGetters(['getUsersOffset', 'getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedUserFriends', 'getFetchedCheckedUsersFriends']),
+    ...mapGetters(['getUsersOffset', 'getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
     ...mapMutations(['setCheckedUsers', 'setUsersOffset']),

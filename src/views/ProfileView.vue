@@ -16,16 +16,16 @@
         </div>
         <div class="user-info__friends">
           <tempplate v-for="user in this.getFetchedUserFriends" :key="user.id">
-              <div class="user-info__item">
-                <div class="user-item__avatar">
-                  <img :src="user.photo" alt="avatar">
-                </div>
-                <div class="user-item__description">
-                  <p>Имя: {{ `${user.last_name} ${user.first_name}` }}</p>
-                  <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
-                  <a :href="`https://vk.com/id${user.id}`">Профиль в ВК</a>
-                </div>
+            <div class="user-info__item">
+              <div class="user-item__avatar">
+                <img :src="user.photo" alt="avatar">
               </div>
+              <div class="user-item__description">
+                <p>Имя: {{ `${user.last_name} ${user.first_name}` }}</p>
+                <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
+                <a :href="`https://vk.com/id${user.id}`">Профиль в ВК</a>
+              </div>
+            </div>
           </tempplate>
           <div class="user-info__item-next" @click="clickSearchNextFriends">
             <p>Подгрузить еще 10 друзей...</p>
@@ -33,30 +33,37 @@
         </div>
       </div>
     </template>
-    <template v-if="this.getFetchedWall">
-      <div class="posts">
-        <p>Посты:</p>
-        <!--TODO: Сделать подгрузку следующих 10 постов-->
-        <!--TODO: Проработать другие типы постов (link, репост-есть поле copy_history)-->
-        <template v-for="post in this.getFetchedWall" :key="post.id">
-          <div class="post">
-            <div class="post__attachments">
-              <template v-if="post?.attachments?.length > 0 && post?.attachments[0]?.type === 'photo'">
-                <template v-for="attachment in post.attachments" :key="attachment.photo.id">
-                  <template v-if="attachment.type === 'photo'">
-                    <img :src="post?.attachments[0]?.photo.sizes[1].url" alt="">
+    <div class="wall-info">
+      <p style="margin-right: 10px">Посты:</p>
+      <template v-if="this.getFetchedWall.length !== 0">
+        <div class="wall-info__posts">
+          <!--TODO: Сделать подгрузку следующих 10 постов-->
+          <!--TODO: Проработать другие типы постов (link, репост-есть поле copy_history)-->
+          <template v-for="post in this.getFetchedWall" :key="post.id">
+            <template v-if="post.text.length!==0 || post.attachments">
+              <div class="post">
+                <div class="post__attachments">
+                  <template v-if="post?.attachments?.length > 0 && post?.attachments[0]?.type === 'photo'">
+                    <template v-for="attachment in post.attachments" :key="attachment.photo.id">
+                      <template v-if="attachment.type === 'photo'">
+                        <img :src="post?.attachments[0]?.photo.sizes[1].url" alt="">
+                      </template>
+                    </template>
                   </template>
-                </template>
-              </template>
-            </div>
-            <div class="post__description">
-              <p>{{ post?.text.length > 200 ? post?.text.slice(0, 200) + '...' : post?.text }}</p>
-            </div>
-          </div>
-        </template>
-      </div>
-
-    </template>
+                </div>
+                <div class="post__description">
+                  <p>{{ post?.text.length > 200 ? post?.text.slice(0, 200) + '...' : post?.text }}</p>
+                  <a :href="`https://vk.com/id${this.$route.params.id}?w=wall${this.$route.params.id}_${post.id}`">Перейти к посту</a>
+                </div>
+              </div>
+            </template>
+          </template>
+        </div>
+      </template>
+      <template v-else>
+        <p>У пользователя нет постов на стене...</p>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -122,11 +129,13 @@ export default {
       max-height: 200px;
       overflow-y: scroll;
       justify-content: left;
-      .user-info__item-next{
-        cursor:pointer;
+
+      .user-info__item-next {
+        cursor: pointer;
         background: white;
         border: 1px solid grey;
       }
+
       .user-info__item {
         padding: 10px;
         display: flex;
@@ -146,16 +155,23 @@ export default {
     }
   }
 
-  .posts {
-    width: 75%;
+  .wall-info {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: start;
 
-    .post {
-      width: 25%;
-      padding: 5px;
-      border: 1px solid grey;
+    .wall-info__posts {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+
+      .post {
+        width: 250px;
+        padding: 5px;
+        border: 1px solid grey;
+      }
     }
+
   }
 }
 

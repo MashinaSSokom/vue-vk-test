@@ -202,14 +202,13 @@ export default createStore({
             resultFriendsList.sort((a, b) => {
                 return a.last_name.toLowerCase().localeCompare(b.last_name.toLowerCase())
             })
-            console.log(resultFriendsList)
             ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
         },
         fetchUserWall: async (ctx, {userId}) => {
             const res = await jsonp(`https://api.vk.com/method/wall.get`, {
                 owner_id: userId,
                 access_token: ctx.state.accessToken,
-                count: '10',
+                // count: '10',
                 v: 5.131
             })
             const payload = res.response.items
