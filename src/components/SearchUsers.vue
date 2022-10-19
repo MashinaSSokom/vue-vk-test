@@ -10,10 +10,17 @@
                         @focus="() => this.searchActive=true"
                         @focusout="() => this.searchActive=false"/>
               <my-button class="search__button" @click="clickSearchButtonHandler">Найти</my-button>
-              <p class="search__close-results" v-show="showSearchedUsers" @click="closeSearchResults">Скрыть
-                результаты...</p>
+              <template v-if="showSearchedUsers">
+                <p class="search__close-results" @click="closeSearchResults">Скрыть
+                  результаты...</p>
+              </template>
+              <template v-else>
+                <p class="search__close-results" v-show="this.getFetchedUsers.length!==0" @click="openSearchResults">Показать
+                  результаты...</p>
+              </template>
+
             </div>
-            <div class="search-list" v-show="showSearchedUsers" v-click-outside="clickOutsideSearchMenuHandler">
+            <div class="search-list" v-show="showSearchedUsers">
               <template v-for="user in this.getFetchedUsers" :key="user.id">
                 <div class="search-list__user" @click="() => userClickHandler(user)">
                   <!--                  <img :src="user.photo" alt="">-->
@@ -23,10 +30,9 @@
                   <p>{{ `${user.first_name} ${user.last_name}` }}</p>
                   <p>Общих друзей: {{ user.common_count }}</p>
                 </div>
-                <!--TODO: Подгрузка следующих 20-->
               </template>
               <div class="search-list__next-users" @click="clickSearchNextUsers">
-                <p>Загрузить следующие 10 записей...</p>
+                <p>Загрузить следующие 20 записей...</p>
               </div>
             </div>
           </div>
@@ -64,7 +70,6 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import MyButton from "@/components/UI/MyButton";
 import MyInput from "@/components/UI/MyInput";
-import ClickOutside from 'vue-click-outside'
 
 export default {
   name: "SearchUsers",
@@ -93,6 +98,9 @@ export default {
     },
     closeSearchResults() {
       this.showSearchedUsers = false
+    },
+    openSearchResults() {
+      this.showSearchedUsers = true
     },
     findUsers(searchQuery) {
       this.foundUsers = this.getAllUsers.filter((user) =>
@@ -124,9 +132,6 @@ export default {
       this.setCheckedUsers({checkedUsers: checkedUsers})
     }
   },
-  directives: {
-    ClickOutside
-  }
 }
 </script>
 
@@ -163,7 +168,7 @@ export default {
     .search__close-results {
       position: absolute;
       font-size: 10px;
-      width: 100px;
+      width: 120px;
       right: 70px;
       top: 15px;
       cursor: pointer;
