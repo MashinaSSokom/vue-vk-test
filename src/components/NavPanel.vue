@@ -6,10 +6,9 @@
       <a href="#" @click="loginHandler">Войти через ВК</a>
     </template>
     <template v-else>
-      <a href="#" @click="clickExitHandler">Выйти</a>
+      <a href="/" @click="clickExitHandler">Выйти</a>
       <checked-users/>
     </template>
-<!--    todo: Кнопка выйти, если пользователь залогинен-->
   </div>
 </template>
 

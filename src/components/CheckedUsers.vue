@@ -4,7 +4,7 @@
     </my-button>
     <div class="checked-users__list" v-show="showCheckedUsers">
       <div class="checked-users__item" v-for="user in this.getCheckedUsers" :key="user.id">
-        <p>{{ user.id }}</p>
+        <p><router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link></p>
         <p>{{ user.name }}</p>
         <button @click="clickDeleteUserHandler(user.id)">x</button>
       </div>
@@ -62,6 +62,22 @@ export default {
     .checked-users__item {
       color: #000;
       display: flex;
+      width: 300px;
+      padding: 5px;
+      border: 1px solid grey;
+      p:first-child{
+        margin-right: 10px;
+      }
+
+      button {
+        position: absolute;
+        margin-left: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: red;
+        right: 10px;
+      }
     }
   }
 }
