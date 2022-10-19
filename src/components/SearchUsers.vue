@@ -16,10 +16,9 @@
             <div class="search-list" v-show="showSearchedUsers" v-click-outside="clickOutsideSearchMenuHandler">
               <template v-for="user in this.getFetchedUsers" :key="user.id">
                 <div class="search-list__user" @click="() => userClickHandler(user)">
-                  <img :src="user.photo" alt="">
-                  <p>id: {{ user.id }}</p>
-                  <router-link :to="`/profile/${user.id}`"><p>{{ `${user.first_name} ${user.last_name}` }}</p>
-                  </router-link>
+                  <!--                  <img :src="user.photo" alt="">-->
+                  <p>id:<router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link></p>
+                  <p>{{ `${user.first_name} ${user.last_name}` }}</p>
                   <p>Общих друзей: {{ user.common_count }}</p>
                 </div>
                 <!--TODO: Подгрузка следующих 20-->
@@ -37,7 +36,12 @@
           <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
             <div class="user-card">
               <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+              <p>ID:
+                <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
+              </p>
               <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+              <p>{{ user.counters }}</p>
+              <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
               <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
             </div>
           </template>
@@ -165,11 +169,7 @@ export default {
   }
 
   .search-list {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    height: fit-content;
-    max-height: 500px;
+    max-height: 200px;
     overflow-y: scroll;
     position: absolute;
     top: 30px;
@@ -177,14 +177,16 @@ export default {
 
     .search-list__user {
       display: flex;
-      flex: 1;
+      flex-direction: column;
       width: 500px;
       border: 1px solid grey;
-
+      background: #fff;
+      padding: 5px;
       &:hover {
         background: greenyellow;
 
       }
+
     }
   }
 
@@ -199,7 +201,7 @@ export default {
 
       .user-card {
         width: 210px;
-        height: 350px;
+        height: 320px;
         border: 1px solid grey;
         border-radius: 15px;
         display: flex;
