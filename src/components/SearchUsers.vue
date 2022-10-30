@@ -51,7 +51,7 @@
                   <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
                 </p>
                 <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-                <p>{{ user.counters }}</p>
+                <p>Возраст: {{computeBDate(user.bdate) }}</p>
                 <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
                 <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
               </div>
@@ -91,6 +91,16 @@ export default {
     ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
     handleInput(e) {
       this.searchQuery = e.target.value
+    },
+    computeBDate(dateString) {
+      if (dateString) {
+        let d = dateString.split('.')
+        if (d.length === 3) {
+          const bDate = new Date(d[2], d[1] - 1, d[0])
+          return Math.floor((Date.now() - bDate) / (1000 * 60 * 60 * 24 * 365))
+        }
+      }
+      return 'Нет информации'
     },
     closeSearchResults() {
       this.showSearchedUsers = false
