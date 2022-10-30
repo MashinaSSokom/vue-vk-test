@@ -44,7 +44,7 @@
               <div class="post">
                 <div class="post__attachments">
                   <template v-if="post?.attachments?.length > 0 && post?.attachments[0]?.type === 'photo'">
-                    <template v-for="attachment in post.attachments" :key="attachment.photo.id">
+                    <template v-for="attachment in post.attachments" :key="attachment?.photo?.id">
                       <template v-if="attachment.type === 'photo'">
                         <img :src="post?.attachments[0]?.photo.sizes[1].url" alt="">
                       </template>
@@ -72,12 +72,12 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "ProfileView",
-  beforeMount() {
+  async beforeMount() {
     this.setUserFriendsOffset({offset: 0})
     const userId = this.$route.params.id
-    this.fetchUserWall({userId: userId})
-    this.fetchUserFriends({userId: userId})
-    this.fetchProfile({userId: userId})
+    await this.fetchUserWall({userId: userId})
+    await this.fetchUserFriends({userId: userId})
+    await this.fetchProfile({userId: userId})
   },
   computed: {
     ...mapGetters(['getFetchedWall', 'getFetchedUserFriends', 'getProfile', 'getUserFriendsOffset']),
