@@ -8,6 +8,7 @@ const redirectUri = `http://localhost:8080`
 
 export default createStore({
     state: {
+        isLoading: false,
         searchQuery: '',
         checkedUsers: [],
         profile: null,
@@ -23,6 +24,9 @@ export default createStore({
         postOffset: 0,
     },
     getters: {
+        getIsLoading: (state) => {
+            return state.isLoading
+        },
         getSearchQuery: (state) => {
             return state.searchQuery
         },
@@ -71,6 +75,15 @@ export default createStore({
 
     },
     mutations: {
+        setIsLoadingTrue: (state) => {
+            console.log('Загрука началась!')
+            state.isLoading = true
+        },
+        setIsLoadingFalse: (state) => {
+            console.log('Загрука закончилась!')
+
+            state.isLoading = false
+        },
         setAccessToken: (state, {token}) => {
             state.accessToken = token
         },
@@ -115,6 +128,7 @@ export default createStore({
             state.loggedUserId = userId
         },
         logout: (state) => {
+            state.isLoading = false
             state.checkedUsers = []
             state.profile = null
             state.accessToken = ''

@@ -41,25 +41,34 @@
         </template>
       </div>
       <my-button class="compute__button" @click="clickComputeButtonHandler">Построить</my-button>
-      <template v-if="this.getFetchedCheckedUsersFriends.length !== 0">
-        <div class="fetched-users">
-          <p>Найденные друзья выбранных пользователей:</p>
-          <div class="fetched-users__container">
-            <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-              <div class="user-card"
-                   :style="{background: `hsl(120, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%, 50%)`}">
-                <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
-                <p>ID:
-                  <span @click="() => this.clickProfileHandler(user)">{{ user.id }}</span>
-                </p>
-                <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-                <p>Возраст: {{ computeBDate(user.bdate) }}</p>
-                <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
-                <p>Друзей: {{ user.friends_count }}</p>
-              </div>
-            </template>
+      <template v-if="!this.getIsLoading">
+
+        <template v-if="this.getFetchedCheckedUsersFriends.length !== 0">
+          <div class="fetched-users">
+            <p>Найденные друзья выбранных пользователей:</p>
+            <div class="fetched-users__container">
+              <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
+                <div class="user-card"
+                     :style="{background: `hsl(120, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%, 50%)`}">
+                  <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
+                  <p>ID:
+                    <span @click="() => this.clickProfileHandler(user)">{{ user.id }}</span>
+                  </p>
+                  <p>{{ `${user.last_name} ${user.first_name}` }}</p>
+                  <p>Возраст: {{ computeBDate(user.bdate) }}</p>
+                  <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
+                  <p>Друзей: {{ user.friends_count }}</p>
+                </div>
+              </template>
+            </div>
           </div>
-        </div>
+        </template>
+        <template v-else>
+          <p>Выберите пользователей через поиск и нажмите кнопку "Построить"</p>
+        </template>
+      </template>
+      <template v-else>
+        <my-loading-spinner/>
       </template>
     </template>
     <template v-else>
@@ -72,10 +81,11 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import MyButton from "@/components/UI/MyButton";
 import MyInput from "@/components/UI/MyInput";
+import MyLoadingSpinner from "@/components/UI/MyLoadingSpinner";
 
 export default {
   name: "SearchUsers",
-  components: {MyInput, MyButton},
+  components: {MyLoadingSpinner, MyInput, MyButton},
   data() {
     return {
       foundUsers: [],
@@ -86,10 +96,10 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['getUsersOffset', 'getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedCheckedUsersFriends']),
+    ...mapGetters(['getIsLoading', 'getUsersOffset', 'getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
-    ...mapMutations(['setCheckedUsers', 'setUsersOffset', "setProfile"]),
+    ...mapMutations(['setCheckedUsers', 'setUsersOffset', "setProfile", 'setIsLoadingTrue', 'setIsLoadingFalse']),
     ...mapActions(['fetchCheckedUsersFriends', "fetchUsers"]),
     clickProfileHandler(user) {
       this.setProfile({userInfo: user})
@@ -132,9 +142,11 @@ export default {
       this.setUsersOffset({offset: this.getUsersOffset + 20})
       this.fetchUsers({q: +this.searchQuery ? `id${this.searchQuery}` : this.searchQuery})
     },
-    clickComputeButtonHandler() {
+    async clickComputeButtonHandler() {
       if (this.getCheckedUsers.length !== 0) {
-        this.fetchCheckedUsersFriends({userIds: this.getCheckedUsers.map(el => el.id)})
+        this.setIsLoadingTrue()
+        await this.fetchCheckedUsersFriends({userIds: this.getCheckedUsers.map(el => el.id)})
+        this.setIsLoadingFalse()
       }
     },
     userClickHandler(user) {
