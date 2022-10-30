@@ -26,7 +26,9 @@
                 <div class="search-list__user" @click="() => userClickHandler(user)">
                   <!--                  <img :src="user.photo" alt="">-->
                   <p>id:
-                    <span @click="() => this.clickProfileHandler(user)">{{ user.id }}</span>
+                    <span class="profile-link" @click="() => this.clickProfileHandler(user)">{{
+                        user.id
+                      }}</span>
                   </p>
                   <p>{{ `${user.first_name} ${user.last_name}` }}</p>
                   <p>Общих друзей: {{ user.common_count }}</p>
@@ -52,7 +54,9 @@
                      :style="{background: `hsl(120, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%, 50%)`}">
                   <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
                   <p>ID:
-                    <span @click="() => this.clickProfileHandler(user)">{{ user.id }}</span>
+                    <span class="profile-link" @click="() => this.clickProfileHandler(user)">{{
+                        user.id
+                      }}</span>
                   </p>
                   <p>{{ `${user.last_name} ${user.first_name}` }}</p>
                   <p>Возраст: {{ computeBDate(user.bdate) }}</p>
@@ -164,6 +168,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.profile-link {
+  cursor: pointer;
+  text-decoration: rgb(0, 102, 204) underline;
+  color: rgb(0, 102, 204);
+}
 .search {
   //display: flex;
   //flex-direction: column;;
@@ -228,7 +237,6 @@ export default {
     position: absolute;
     top: 30px;
     z-index: 2;
-
     .search-list__user {
       display: flex;
       flex-direction: column;
@@ -272,7 +280,6 @@ export default {
         flex-direction: column;
         padding: 5px;
         margin: 2px;
-
         .user-card__avatar {
           border-radius: 15px;
           width: 200px;
