@@ -53,7 +53,7 @@
                 <p>{{ `${user.last_name} ${user.first_name}` }}</p>
                 <p>Возраст: {{computeBDate(user.bdate) }}</p>
                 <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
-                <p>Друзей среди выбранных пользователей: {{ user.countCheckedUserMatch }}</p>
+                <p>Друзей: {{ user.friends_count }}</p>
               </div>
             </template>
           </div>

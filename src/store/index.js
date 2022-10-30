@@ -1,6 +1,7 @@
 import {createStore} from 'vuex'
 import {jsonp} from "vue-jsonp";
 import createPersistedState from "vuex-persistedstate";
+import {sleep} from "@/utils/utils";
 
 
 const redirectUri = `http://localhost:8080`
@@ -131,98 +132,138 @@ export default createStore({
             window.location.href = `https://oauth.vk.com/authorize?client_id=${appId}&display=popup&redirect_uri=${redirectUri}&scope=friends&users&response_type=token&v=v=5.131`
         },
         fetchUsers: async (ctx, {q}) => {
-            console.log(ctx.state.usersOffset)
-            const res = await jsonp(`https://api.vk.com/method/users.search`, {
-                q: q,
-                access_token: ctx.state.accessToken,
-                count: '20',
-                offset: ctx.state.usersOffset,
-                fields: 'name,common_count,sex,photo',
-                v: 5.131
-            })
-            const payload = res.response.items
-            if (ctx.state.usersOffset === 0) {
-                ctx.commit('setFetchedUsers', {fetchedUsers: payload})
-            } else {
-                ctx.commit('setFetchedUsers', {fetchedUsers: [...ctx.state.fetchedUsers, ...payload]})
+            try {
+                const res = await jsonp(`https://api.vk.com/method/users.search`, {
+                    q: q,
+                    access_token: ctx.state.accessToken,
+                    count: '20',
+                    offset: ctx.state.usersOffset,
+                    fields: 'name,common_count,sex,photo',
+                    v: 5.131
+                })
+                const payload = res.response.items
+                await sleep(200)
+                if (ctx.state.usersOffset === 0) {
+                    ctx.commit('setFetchedUsers', {fetchedUsers: payload})
+                } else {
+                    ctx.commit('setFetchedUsers', {fetchedUsers: [...ctx.state.fetchedUsers, ...payload]})
+                }
+            } catch (e) {
+                console.log(e)
             }
         },
         fetchUserFriends: async (ctx, {userId}) => {
-            const res = await jsonp(`https://api.vk.com/method/friends.get`, {
-                user_id: userId,
-                fields: 'name,photo,bdate,common_count,sex',
-                access_token: ctx.state.accessToken,
-                count: '20',
-                offset: ctx.state.userFriendsOffset,
-                v: 5.131
-            })
-            if (res.response.items.length !== 0) {
-                const payload = res.response.items
-                if (ctx.state.usersOffset === 0) {
-                    ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
-                } else {
-                    ctx.commit('setFetchedUserFriends', {fetchedUserFriends: [...ctx.state.fetchedUserFriends, ...payload]})
+            try {
+                const res = await jsonp(`https://api.vk.com/method/friends.get`, {
+                    user_id: userId,
+                    fields: 'name,photo,bdate,common_count,sex',
+                    access_token: ctx.state.accessToken,
+                    count: '20',
+                    offset: ctx.state.userFriendsOffset,
+                    v: 5.131
+                })
+                await sleep(200)
+                if (res.response.items.length !== 0) {
+                    const payload = res.response.items
+                    if (ctx.state.usersOffset === 0) {
+                        ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
+                    } else {
+                        ctx.commit('setFetchedUserFriends', {fetchedUserFriends: [...ctx.state.fetchedUserFriends, ...payload]})
+                    }
                 }
+            } catch (e) {
+                console.log(e)
             }
         },
         fetchCheckedUsersFriends: async (ctx, {userIds}) => {
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-
-            let allFriendsList = []
-            let resultFriendsList = []
-            let checkedUserIds = {}
-            for (const id of userIds) {
-                const res = await jsonp(`https://api.vk.com/method/friends.get`, {
-                    user_id: id,
-                    fields: 'name,photo_200_orig,bdate,sex',
-                    access_token: ctx.state.accessToken,
-                    v: 5.131
+            try {
+                let allFriendsList = []
+                let resultFriendsList = []
+                let checkedUserIds = {}
+                for (const id of userIds) {
+                    const res = await jsonp(`https://api.vk.com/method/friends.get`, {
+                        user_id: id,
+                        fields: 'name,photo_200_orig,bdate,sex,list_id',
+                        access_token: ctx.state.accessToken,
+                        v: 5.131
+                    })
+                    if (!res.error) {
+                        for (const user of res.response.items) {
+                            user['checkedUserId'] = id
+                        }
+                        allFriendsList = [...allFriendsList, ...res.response.items]
+                        console.log(res.response.items)
+                    }
+                }
+                allFriendsList.forEach((user) => {
+                    if (checkedUserIds[user.id]) {
+                        checkedUserIds[user.id] = [...checkedUserIds[user.id], user.checkedUserId]
+                    } else {
+                        checkedUserIds[user.id] = [user.checkedUserId]
+                    }
                 })
-                if (!res.error) {
-                    allFriendsList = [...allFriendsList, ...res.response.items]
+                allFriendsList.forEach((user) => {
+                    if (checkedUserIds[user.id] && user.first_name !== "DELETED" && user.can_access_closed && !user.is_closed) {
+                        user.countCheckedUserMatch = checkedUserIds[user.id].length
+                        user.checkedUserInFriends = checkedUserIds[user.id]
+                        resultFriendsList.push(user)
+                        delete checkedUserIds[user.id]
+                    }
+                })
+                resultFriendsList.sort((a, b) => {
+                    return a.last_name.toLowerCase().localeCompare(b.last_name.toLowerCase())
+                })
+                for (const user of resultFriendsList) {
+                    const user_res = await jsonp(`https://api.vk.com/method/users.get`, {
+                        user_ids: user.id,
+                        access_token: ctx.state.accessToken,
+                        fields: 'counters',
+                        v: 5.131
+                    })
+                    // Пришлось добавить задержку в 300мс, так как VK API начинает ругаться на слишком большой rps :(
+                    await sleep(300)
+                    if (!user_res.error) {
+                        user['friends_count'] = user_res.response[0].counters.friends
+                    } else {
+                        user['friends_count'] = 'Нет информации...'
+                    }
                 }
-                await sleep(400)
+                await sleep(200)
+                ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
+            } catch (e) {
+                console.log(e)
             }
-            allFriendsList.forEach((user) => {
-                if (checkedUserIds[user.id]) {
-                    checkedUserIds[user.id] += 1
-                } else {
-                    checkedUserIds[user.id] = 1
-                }
-            })
-            allFriendsList.forEach((user) => {
-                if (checkedUserIds[user.id] && user.first_name !== "DELETED") {
-                    user.countCheckedUserMatch = checkedUserIds[user.id]
-                    resultFriendsList.push(user)
-                    delete checkedUserIds[user.id]
-                }
-            })
-            resultFriendsList.sort((a, b) => {
-                return a.last_name.toLowerCase().localeCompare(b.last_name.toLowerCase())
-            })
-            ctx.commit('setFetchedCheckedUsersFriends', {fetchedCheckedUsersFriends: resultFriendsList})
         },
         fetchUserWall: async (ctx, {userId}) => {
-            const res = await jsonp(`https://api.vk.com/method/wall.get`, {
-                owner_id: userId,
-                access_token: ctx.state.accessToken,
-                // count: '10',
-                v: 5.131
-            })
-            const payload = res.response.items
-            ctx.commit('setFetchedWall', {fetchedWall: payload})
+            try {
+                const res = await jsonp(`https://api.vk.com/method/wall.get`, {
+                    owner_id: userId,
+                    access_token: ctx.state.accessToken,
+                    // count: '10',
+                    v: 5.131
+                })
+                const payload = res.response.items
+                await sleep(200)
+                ctx.commit('setFetchedWall', {fetchedWall: payload})
+            } catch (e) {
+                console.log(e)
+            }
+
         },
         fetchProfile: async (ctx, {userId}) => {
-            const res = await jsonp(`https://api.vk.com/method/users.get`, {
-                user_ids: userId,
-                access_token: ctx.state.accessToken,
-                fields: 'name,sex,photo_200_orig,bdate,counters',
-                v: 5.131
-            })
-            const payload = res.response[0]
-            ctx.commit('setProfile', {userInfo: payload})
+            try {
+                const res = await jsonp(`https://api.vk.com/method/users.get`, {
+                    user_ids: userId,
+                    access_token: ctx.state.accessToken,
+                    fields: 'name,sex,photo_200_orig,bdate,counters',
+                    v: 5.131
+                })
+                const payload = res.response[0]
+                await sleep(200)
+                ctx.commit('setProfile', {userInfo: payload})
+            } catch (e) {
+                console.log(e)
+            }
         }
     },
     modules: {},
