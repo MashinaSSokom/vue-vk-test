@@ -45,7 +45,7 @@
           <p>Найденные друзья выбранных пользователей:</p>
           <div class="fetched-users__container">
             <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-              <div class="user-card" :style="{background: `hsl(120, 100%, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%)`}">
+              <div class="user-card" :style="{background: `hsl(120, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%, 50%)`}">
                 <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
                 <p>ID:
                   <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
