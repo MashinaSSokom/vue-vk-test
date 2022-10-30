@@ -108,6 +108,7 @@ export default createStore({
             state.fetchedWall = fetchedWall
         },
         setProfile: (state, {userInfo}) => {
+            console.log(userInfo)
             state.profile = userInfo
         },
         setLoggedUserId: (state, {userId}) => {
@@ -152,25 +153,23 @@ export default createStore({
                 console.log(e)
             }
         },
-        fetchUserFriends: async (ctx, {userId}) => {
+        fetchUserFriends: async (ctx, {userIds}) => {
             try {
-                const res = await jsonp(`https://api.vk.com/method/friends.get`, {
-                    user_id: userId,
-                    fields: 'name,photo,bdate,common_count,sex',
-                    access_token: ctx.state.accessToken,
-                    count: '20',
-                    offset: ctx.state.userFriendsOffset,
-                    v: 5.131
-                })
-                await sleep(200)
-                if (res.response.items.length !== 0) {
-                    const payload = res.response.items
-                    if (ctx.state.usersOffset === 0) {
-                        ctx.commit('setFetchedUserFriends', {fetchedUserFriends: payload})
-                    } else {
-                        ctx.commit('setFetchedUserFriends', {fetchedUserFriends: [...ctx.state.fetchedUserFriends, ...payload]})
+                let friends = []
+                for (const userId of userIds) {
+                    const res = await jsonp(`https://api.vk.com/method/users.get`, {
+                        user_id: userId,
+                        fields: 'name,sex,photo,bdate,counters',
+                        access_token: ctx.state.accessToken,
+                        offset: ctx.state.userFriendsOffset,
+                        v: 5.131
+                    })
+                    await sleep(200)
+                    if (!res.error) {
+                        friends.push(res.response[0])
                     }
                 }
+                ctx.commit('setFetchedUserFriends', {fetchedUserFriends: friends})
             } catch (e) {
                 console.log(e)
             }

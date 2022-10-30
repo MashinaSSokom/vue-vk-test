@@ -15,7 +15,8 @@
                   результаты...</p>
               </template>
               <template v-else>
-                <p class="search__close-results" v-show="this.getFetchedUsers.length!==0" @click="openSearchResults">Показать
+                <p class="search__close-results" v-show="this.getFetchedUsers.length!==0" @click="openSearchResults">
+                  Показать
                   результаты...</p>
               </template>
 
@@ -25,7 +26,7 @@
                 <div class="search-list__user" @click="() => userClickHandler(user)">
                   <!--                  <img :src="user.photo" alt="">-->
                   <p>id:
-                    <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
+                    <span @click="() => this.clickProfileHandler(user)">{{ user.id }}</span>
                   </p>
                   <p>{{ `${user.first_name} ${user.last_name}` }}</p>
                   <p>Общих друзей: {{ user.common_count }}</p>
@@ -45,13 +46,14 @@
           <p>Найденные друзья выбранных пользователей:</p>
           <div class="fetched-users__container">
             <template v-for="user in this.getFetchedCheckedUsersFriends" :key="user.id">
-              <div class="user-card" :style="{background: `hsl(120, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%, 50%)`}">
+              <div class="user-card"
+                   :style="{background: `hsl(120, ${Math.floor(user.countCheckedUserMatch / this.getCheckedUsers.length * 100)}%, 50%)`}">
                 <img :src="user.photo_200_orig" class="user-card__avatar" alt="Avatar">
                 <p>ID:
-                  <router-link :to="`/profile/${user.id}`">{{ user.id }}</router-link>
+                  <span @click="() => this.clickProfileHandler(user)">{{ user.id }}</span>
                 </p>
                 <p>{{ `${user.last_name} ${user.first_name}` }}</p>
-                <p>Возраст: {{computeBDate(user.bdate) }}</p>
+                <p>Возраст: {{ computeBDate(user.bdate) }}</p>
                 <p>Пол: {{ user.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
                 <p>Друзей: {{ user.friends_count }}</p>
               </div>
@@ -87,8 +89,16 @@ export default {
     ...mapGetters(['getUsersOffset', 'getAllUsers', 'getCheckedUsers', 'isLoggedIn', "getLoggedUserId", 'getFetchedUsers', 'getFetchedCheckedUsersFriends']),
   },
   methods: {
-    ...mapMutations(['setCheckedUsers', 'setUsersOffset']),
-    ...mapActions(['fetchUserFriends', 'fetchCheckedUsersFriends', "fetchUsers"]),
+    ...mapMutations(['setCheckedUsers', 'setUsersOffset', "setProfile"]),
+    ...mapActions(['fetchCheckedUsersFriends', "fetchUsers"]),
+    clickProfileHandler(user) {
+      this.setProfile({userInfo: user})
+      this.$router.push({
+        name: 'profile', params: {
+          id: user.id
+        }
+      })
+    },
     handleInput(e) {
       this.searchQuery = e.target.value
     },
@@ -219,12 +229,14 @@ export default {
         background: greenyellow;
       }
     }
-    .search-list__next-users{
+
+    .search-list__next-users {
       cursor: pointer;
       border: 1px solid grey;
       background: #fff;
       padding: 5px;
-      &:hover{
+
+      &:hover {
         background: greenyellow;
       }
     }

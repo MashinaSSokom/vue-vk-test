@@ -11,7 +11,7 @@
           <p>Возраст:
             {{ computeBDate(this.getProfile.bdate) }}</p>
           <p>Пол: {{ this.getProfile.sex === 2 ? 'Мужчина' : 'Женщина' }}</p>
-          <p>Количество друзей: {{ `${this.getProfile.counters.friends}` }}</p>
+          <p>Количество друзей: {{ `${this.getProfile.friends_count}` }}</p>
           <a :href="`https://vk.com/id${this.getProfile.id}`">Профиль в ВК</a>
         </div>
         <div class="user-info__friends">
@@ -27,9 +27,6 @@
               </div>
             </div>
           </tempplate>
-          <div class="user-info__item-next" @click="clickSearchNextFriends">
-            <p>Подгрузить еще 10 друзей...</p>
-          </div>
         </div>
       </div>
     </template>
@@ -68,22 +65,19 @@
 </template>
 
 <script>
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
   name: "ProfileView",
   async beforeMount() {
-    this.setUserFriendsOffset({offset: 0})
     const userId = this.$route.params.id
     await this.fetchUserWall({userId: userId})
-    await this.fetchUserFriends({userId: userId})
-    await this.fetchProfile({userId: userId})
+    await this.fetchUserFriends({userIds: this.getProfile.checkedUserInFriends})
   },
   computed: {
     ...mapGetters(['getFetchedWall', 'getFetchedUserFriends', 'getProfile', 'getUserFriendsOffset']),
   },
   methods: {
-    ...mapMutations(['setUserFriendsOffset']),
     ...mapActions(['fetchUserWall', 'fetchUserFriends', 'fetchProfile']),
     computeBDate(dateString) {
       if (dateString) {
@@ -95,10 +89,6 @@ export default {
       }
       return 'Нет информации'
     },
-    clickSearchNextFriends() {
-      this.setUserFriendsOffset({offset: this.getUserFriendsOffset + 10})
-      this.fetchUserFriends({userId: this.$route.params.id})
-    }
   }
 }
 </script>
